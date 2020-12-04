@@ -337,6 +337,7 @@ struct sector_cache_block : public cache_block_t {
 
   virtual void set_status(enum cache_block_state status,
                           mem_access_sector_mask_t sector_mask) {
+    if(status == MODIFIED) printf("modified\n");
     unsigned sidx = get_sector_index(sector_mask);
     m_status[sidx] = status;
   }
@@ -634,8 +635,8 @@ class cache_config {
           "cannot work properly with ON_FILL policy. Cache must be ON_MISS. ");
     }
     if (m_cache_type == SECTOR) {
-      assert(m_line_sz / SECTOR_SIZE == SECTOR_CHUNCK_SIZE &&
-             m_line_sz % SECTOR_SIZE == 0);
+	   assert(m_line_sz / SECTOR_SIZE == SECTOR_CHUNCK_SIZE &&
+           m_line_sz % SECTOR_SIZE == 0);
     }
 
     // default: port to data array width and granularity = line size
@@ -867,7 +868,7 @@ class tag_array {
   float windowed_miss_rate() const;
   void get_stats(unsigned &total_access, unsigned &total_misses,
                  unsigned &total_hit_res, unsigned &total_res_fail) const;
-
+  int get_core() { return m_core_id; }
   void update_cache_parameters(cache_config &config);
   void add_pending_line(mem_fetch *mf);
   void remove_pending_line(mem_fetch *mf);

@@ -428,7 +428,10 @@ printf("in tag_array:access\n");
       m_miss++;
       shader_cache_access_log(m_core_id, m_type_id, 1);  // log cache misses
       if (m_config.m_alloc_policy == ON_MISS) {
-        if (m_lines[idx]->is_modified_line()) {
+           printf("ON miss POLICY\n");
+	   printf("line to check = %lu, core = %d \n", mf->get_addr(), m_core_id);
+	  if (m_lines[idx]->is_modified_line()) {
+          printf("Line modified\n");
           wb = true;
 	  printf("found line to evicted\n");
           evicted.set_info(m_lines[idx]->m_block_addr,
@@ -1153,6 +1156,7 @@ void baseline_cache::fill(mem_fetch *mf, unsigned time) {
     assert(m_config.m_alloc_policy == ON_MISS);
     printf("has_atomic\n"); 
     cache_block_t *block = m_tag_array->get_block(e->second.m_cache_index);
+    printf("loc1\n");
     block->set_status(MODIFIED,
                       mf->get_access_sector_mask());  // mark line as dirty for
                                                       // atomic operation
@@ -1265,7 +1269,8 @@ cache_request_status data_cache::wr_hit_wb(new_addr_type addr,
   m_tag_array->access(block_addr, time, cache_index, mf);  // update LRU state
   cache_block_t *block = m_tag_array->get_block(cache_index);
   //printf("in wr_hit_wb\n");
-  //printf("addr that is modifed = %d\n", mf->get_access_sector_mask()); 
+  printf("addr that is modifed = %d, core = %d\n", mf->get_addr(),m_tag_array->get_core()); 
+  printf("loc2\n");
   block->set_status(MODIFIED, mf->get_access_sector_mask());
 
   return HIT;
@@ -1285,7 +1290,7 @@ cache_request_status data_cache::wr_hit_wt(new_addr_type addr,
   new_addr_type block_addr = m_config.block_addr(addr);
   m_tag_array->access(block_addr, time, cache_index, mf);  // update LRU state
   cache_block_t *block = m_tag_array->get_block(cache_index);
- printf("wr_hit_wt\n"); 
+ printf("loc3\n"); 
   block->set_status(MODIFIED, mf->get_access_sector_mask());
 
   // generate a write-through
@@ -1434,6 +1439,7 @@ enum cache_request_status data_cache::wr_miss_wa_fetch_on_write(
         m_tag_array->access(block_addr, time, cache_index, wb, evicted, mf);
     assert(status != HIT);
     cache_block_t *block = m_tag_array->get_block(cache_index);
+    printf("loc4\n");
     block->set_status(MODIFIED, mf->get_access_sector_mask());
     
     if (status == HIT_RESERVED)
@@ -1550,6 +1556,7 @@ enum cache_request_status data_cache::wr_miss_wa_lazy_fetch_on_read(
       m_tag_array->access(block_addr, time, cache_index, wb, evicted, mf);
   assert(m_status != HIT);
   cache_block_t *block = m_tag_array->get_block(cache_index);
+  printf("loc5\n");
   block->set_status(MODIFIED, mf->get_access_sector_mask());
   if(evicted.m_block_addr != 0) printf("non-zero evicted block 2\n"); 
   if (m_status == HIT_RESERVED) {

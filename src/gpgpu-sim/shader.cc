@@ -1859,6 +1859,7 @@ mem_stage_stall_type ldst_unit::process_memory_access_queue(cache_t *cache,
       inst, inst.accessq_back(),
       m_core->get_gpu()->gpu_sim_cycle + m_core->get_gpu()->gpu_tot_sim_cycle);
   std::list<cache_event> events;
+  printf("calling access in process_memory_access_queue\n");
   enum cache_request_status status = cache->access(
       mf->get_addr(), mf,
       m_core->get_gpu()->gpu_sim_cycle + m_core->get_gpu()->gpu_tot_sim_cycle,
@@ -1915,6 +1916,7 @@ mem_stage_stall_type ldst_unit::process_memory_access_queue_l1cache(
                               m_core->get_gpu()->gpu_sim_cycle +
                                   m_core->get_gpu()->gpu_tot_sim_cycle);
     std::list<cache_event> events;
+    printf("calling access in l1_process_memory\n");
     enum cache_request_status status = cache->access(
         mf->get_addr(), mf,
         m_core->get_gpu()->gpu_sim_cycle + m_core->get_gpu()->gpu_tot_sim_cycle,
@@ -1948,10 +1950,10 @@ void ldst_unit::L1_latency_queue_cycle() {
              
 	      unsigned idx = (unsigned)-1;
 	      evicted_block_info evicted;
-            printf("let me check\n");
+           // printf("let me check\n");
              m_L1D->access(mf_next->get_addr(), m_core->get_gpu()->gpu_sim_cycle + m_core->get_gpu()->gpu_tot_sim_cycle, idx, evicted, mf_next);
             if(evicted.m_block_addr != 0) printf("non-zero\n"); 
-	     printf("let me check ending\n"); 
+	     //printf("let me check ending\n"); 
 	     
 	     //put the line into the L1
              m_L1D->fill_sector(mf_next->get_addr(), m_core->get_gpu()->gpu_sim_cycle +
@@ -1962,8 +1964,8 @@ void ldst_unit::L1_latency_queue_cycle() {
 
       m_V1D->fill_new(mf_next->get_addr(),  m_core->get_gpu()->gpu_sim_cycle +
                             m_core->get_gpu()->gpu_tot_sim_cycle);
-   
-      printf("calling access\n"); 
+  
+      printf("calling access\n\n"); 
       enum cache_request_status status =
           m_L1D->access(mf_next->get_addr(), mf_next,
                         m_core->get_gpu()->gpu_sim_cycle +
@@ -1972,8 +1974,10 @@ void ldst_unit::L1_latency_queue_cycle() {
       
       for (std::list<cache_event>::const_iterator e = events.begin();
        e != events.end(); e++) {
-	//if ((*e).m_evicted_block.m_block_addr != 0) 
-//	printf("non-zero block\n");
+	if ((*e).m_evicted_block.m_block_addr != 0) {
+	printf("non-zero block\n");
+	m_V1D->fill_new((*e).m_evicted_block.m_block_addr, m_core->get_gpu()->gpu_sim_cycle + m_core->get_gpu()->gpu_tot_sim_cycle);
+	}
       }
       printf("finished access\n");
       printf("\n");
